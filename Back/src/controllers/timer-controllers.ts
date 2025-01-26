@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { HttpError } from "../models/http-error";
 import { v4 as uuid } from "uuid";
+import { validate } from "../validator/validate";
 
 // 타이머 기록 타입 정의
 interface TimerRecord {
@@ -26,6 +27,8 @@ let DUMMY_TIMER_RECORDS: TimerRecord[] = [
 
 // 사용자의 타이머 기록 조회
 const getTimerRecords = (req: Request, res: Response, next: NextFunction) => {
+  validate(req, res, next);
+
   const { email } = req.params;
 
   try {
@@ -68,6 +71,8 @@ const deleteTimerRecord = async (
   res: Response,
   next: NextFunction
 ) => {
+  validate(req, res, next);
+
   const { email, date } = req.params;
 
   try {

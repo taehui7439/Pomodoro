@@ -1,6 +1,8 @@
 import { HttpError } from "../models/http-error";
 import { v4 as uuid } from "uuid";
 
+import { validate } from "../validator/validate";
+
 const DUMMY_USER = [
   {
     id: uuid(),
@@ -11,6 +13,9 @@ const DUMMY_USER = [
 
 // 회원가입
 const signup = (req: any, res: any, next: any) => {
+  // 입력 확인 함수
+  // validate(req, res, next);
+
   const { password, email } = req.params;
 
   const newUser = {

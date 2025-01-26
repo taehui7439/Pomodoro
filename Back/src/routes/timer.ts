@@ -1,5 +1,8 @@
 import express, { Router } from "express";
 
+import { timerValidators } from "../validator/validator";
+import { validate } from "../validator/validate";
+
 const timerRouter: Router = express.Router();
 
 const {
@@ -8,8 +11,13 @@ const {
   deleteTimerRecord,
 } = require("../controllers/timer-controllers");
 
-timerRouter.get("/:email", getTimerRecords);
-timerRouter.post("/create", createTimerRecord);
-timerRouter.delete("/delete", deleteTimerRecord);
+timerRouter.get("/:email", timerValidators.getTimer, getTimerRecords);
+timerRouter.post(
+  "/create",
+  timerValidators.createTimer,
+  validate,
+  createTimerRecord
+);
+timerRouter.delete("/delete", timerValidators.deleteTimer, deleteTimerRecord);
 
 export default timerRouter;
