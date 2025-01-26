@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import Image from "next/image";
 
 import Timer from "./timer";
@@ -110,6 +110,15 @@ export default function TimerClock() {
     setTimeLeft(TOTAL_TIME);
   }, []);
 
+  // Arrow 이미지 컴포넌트 분리 및 메모이제이션
+  const ArrowImage = React.memo(() => (
+    <div className="flex flex-col justify-center items-center p-[2px] px-[1px] gap-[10px] w-[12px] h-[10px]">
+      <Image src="/images/timer/arrow.svg" alt="Arrow icon" width={10} height={8} priority />
+    </div>
+  ));
+
+  // ArrowImage.displayName = "ArrowImage";
+
   return (
     <>
       <div className="relative w-64 h-64">
@@ -172,9 +181,7 @@ export default function TimerClock() {
           <span className="font-inter font-medium text-[13px] leading-[13px] flex items-center text-center text-[rgba(0,0,0,0.66)]">
             {times.currentTime}
           </span>
-          <div className="flex flex-col justify-center items-center p-[2px] px-[1px] gap-[10px] w-[12px] h-[10px]">
-            <Image src="/images/timer/arrow.svg" alt="Arrow icon" width={10} height={8} />
-          </div>
+          <ArrowImage />
           <span className="font-inter font-medium text-[13px] leading-[13px] flex items-center text-center text-[rgba(0,0,0,0.66)]">
             {times.endTime}
           </span>
