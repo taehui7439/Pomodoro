@@ -1,14 +1,15 @@
 import { error } from "console";
 import express, { Router } from "express";
 
-import { HttpError } from "../models/http-error";
+import { userValidators } from "../validator/validator";
+import { validate } from "../validator/validate";
 
 const usersRouter: Router = express.Router();
 
 const { signup, signin } = require("../controllers/users-controllers");
 
-usersRouter.post("/signup/:password/:email", signup);
+usersRouter.post("/signup", userValidators.signup, validate, signup);
 
-usersRouter.post("/signin/:password", signin);
+usersRouter.post("/signin", userValidators.signup, validate, signin);
 
 export default usersRouter;

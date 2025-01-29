@@ -11,13 +11,23 @@ const {
   deleteTimerRecord,
 } = require("../controllers/timer-controllers");
 
-timerRouter.get("/:email", timerValidators.getTimer, getTimerRecords);
+// 타이머 기록 조회
+timerRouter.get("/:email", timerValidators.getTimer, validate, getTimerRecords);
+
+// 타이머 기록 생성
 timerRouter.post(
   "/create",
   timerValidators.createTimer,
   validate,
   createTimerRecord
 );
-timerRouter.delete("/delete", timerValidators.deleteTimer, deleteTimerRecord);
+
+// 타이머 기록 삭제
+timerRouter.delete(
+  "/delete/:email/:date/:startTime",
+  timerValidators.deleteTimer,
+  validate,
+  deleteTimerRecord
+);
 
 export default timerRouter;
