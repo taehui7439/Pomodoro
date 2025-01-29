@@ -1,7 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { HttpError } from "../models/http-error";
 import { v4 as uuid } from "uuid";
+import { config } from "dotenv";
+
 import { validate } from "../validator/validate";
+import { Timer } from "../models/timerSchema";
 
 // 타이머 기록 타입 정의
 interface TimerRecord {
@@ -13,28 +16,17 @@ interface TimerRecord {
   duration: number;
 }
 
-// 임시 데이터 저장소
-let DUMMY_TIMER_RECORDS: TimerRecord[] = [
-  {
-    id: uuid(),
-    userId: "1@gmail.com",
-    date: "2025-01-22",
-    startTime: "10:00",
-    endTime: "11:00",
-    duration: 60,
-  },
-];
-
 // 사용자의 타이머 기록 조회
-const getTimerRecords = (req: Request, res: Response, next: NextFunction) => {
-  validate(req, res, next);
-
+const getTimerRecords = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { email } = req.params;
 
   try {
-    const userRecords = DUMMY_TIMER_RECORDS.filter(
-      (record) => record.userId === email
-    );
+    // 데이터 조회
+    const userRecords = await Timer.find({ userId: email }).exec();
 
     if (!userRecords.length) {
       return next(new HttpError("타이머 기록을 찾을 수 없습니다.", 404));
@@ -47,22 +39,33 @@ const getTimerRecords = (req: Request, res: Response, next: NextFunction) => {
 };
 
 // 새로운 타이머 기록 생성
-const createTimerRecord = (req: Request, res: Response, next: NextFunction) => {
+const createTimerRecord = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
   const { email } = req.body;
 
-  const newRecord: TimerRecord = {
+  const newRecord = new Timer({
     id: uuid(),
     userId: email,
     date: new Date().toISOString().split("T")[0],
     startTime: req.body.startTime,
     endTime: req.body.endTime,
     duration: req.body.duration,
-  };
-
-  res.status(201).json({
-    message: `${email}님의 타이머 기록이 저장되었습니다.`,
-    record: newRecord,
   });
+
+  try {
+    // 데이터를 DB에 저장
+    const result = await newRecord.save();
+
+    res.status(201).json({
+      message: `${email}님의 타이머 기록이 저장되었습니다.`,
+      record: newRecord,
+    });
+  } catch (err) {
+    return next(new HttpError("타이머 기록 생성 실패", 500));
+  }
 };
 
 // 타이머 기록 삭제
@@ -71,30 +74,21 @@ const deleteTimerRecord = async (
   res: Response,
   next: NextFunction
 ) => {
-  validate(req, res, next);
-
-  const { email, date } = req.params;
+  const { email, date, startTime } = req.params;
 
   try {
-    const recordExists = DUMMY_TIMER_RECORDS.some(
-      (record) => record.userId === email && record.date === date
-    );
+    const result = await Timer.deleteOne({
+      userId: email,
+      date: date,
+      startTime: startTime,
+    });
 
-    if (!recordExists) {
-      return next(
-        new HttpError("해당 날짜의 타이머 기록을 찾을 수 없습니다.", 404)
-      );
-    }
-
-    DUMMY_TIMER_RECORDS = DUMMY_TIMER_RECORDS.filter(
-      (record) => !(record.userId === email && record.date === date)
-    );
-
-    res.status(200).json({
-      message: `${email}님의 ${date} 타이머 기록이 삭제되었습니다.`,
+    res.status(201).json({
+      message: `${email}님의 ${date} ${startTime} 타이머 기록이 삭제되었습니다.`,
+      record: result,
     });
   } catch (err) {
-    return next(new HttpError("타이머 기록 삭제에 실패했습니다.", 500));
+    return next(new HttpError("타이머 기록 삭제 실패", 500));
   }
 };
 

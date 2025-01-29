@@ -1,52 +1,99 @@
 import { HttpError } from "../models/http-error";
 import { v4 as uuid } from "uuid";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 import { validate } from "../validator/validate";
+import { User } from "../models/userSchema";
 
-const DUMMY_USER = [
-  {
-    id: uuid(),
-    password: "1",
-    email: "1@gmail.com",
-  },
-];
+// 사용자 기록 타입 정의
+interface UserRecord {
+  userId: string;
+  passWord: string;
+}
 
 // 회원가입
-const signup = (req: any, res: any, next: any) => {
-  // 입력 확인 함수
-  // validate(req, res, next);
+const signup = async (req: any, res: any, next: any) => {
+  const { password, email } = req.body;
 
-  const { password, email } = req.params;
+  try {
+    // 이메일 중복 확인
+    const existingUser = await User.findOne({ userId: email });
 
-  const newUser = {
-    id: uuid(),
-    password: password,
-    email: email,
-  };
+    if (existingUser) {
+      return next(new HttpError("이미 가입된 이메일입니다.", 422));
+    }
 
-  const userExists = DUMMY_USER.some((user) => user.email === newUser.email);
+    // 비밀번호 해시화
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-  if (userExists) {
-    return next(new HttpError("이미 존재하는 이메일입니다.", 400));
+    // 사용자 생성
+    const newUser = new User({
+      userId: email,
+      password: hashedPassword,
+    });
+
+    // DB에 저장
+    const result = await newUser.save();
+
+    // 5. JWT 토큰 생성
+    const token = jwt.sign(
+      { userId: newUser.userId },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1h" }
+    );
+
+    res.status(201).json({
+      message: `${email} 님 회원가입을 환영합니다.`,
+      userId: newUser.userId,
+      token,
+    });
+  } catch (err) {
+    return next(new HttpError("회원가입 실패", 500));
   }
-
-  DUMMY_USER.push(newUser);
-
-  res.status(201).json({ message: newUser.email + "님 회원가입 완료" });
 };
 
 // 로그인
-const signin = (req: any, res: any, next: any) => {
-  const user = DUMMY_USER.find(
-    (user) =>
-      user.password === req.body.password && user.email === req.body.email
-  );
+const signin = async (req: any, res: any, next: any) => {
+  const { password, email } = req.body;
 
-  if (!user) {
-    return next(new HttpError("사용자를 찾을 수 없습니다.", 404));
+  try {
+    // 이메일로 사용자 찾기
+    const existingUser = await User.findOne({
+      userId: email,
+    });
+
+    if (!existingUser) {
+      return next(new HttpError("회원을 찾지 못했습니다.", 404));
+    }
+
+    // 비밀번호 확인
+    const isValidPassword = await bcrypt.compare(
+      password,
+      existingUser.password
+    );
+
+    if (!isValidPassword) {
+      return next(
+        new HttpError("이메일 또는 비밀번호가 올바르지 않습니다.", 401)
+      );
+    }
+
+    // 3. JWT 토큰 생성
+    const token = jwt.sign(
+      { userId: existingUser.userId },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1h" }
+    );
+
+    res.json({
+      message: "로그인 성공",
+      userId: existingUser.userId,
+      token,
+    });
+  } catch (err) {
+    return next(new HttpError("로그인 실패.", 500));
   }
-
-  res.status(200).json({ message: user.email + "님 로그인 완료" });
 };
 
 export { signup, signin };
