@@ -11,11 +11,15 @@
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
     "express-validator": "^7.2.1",
     "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongodb": "^6.12.0",
+    "mongoose": "^8.9.5",
     "morgan": "^1.10.0",
     "uuid": "^11.0.5"
   },
@@ -26,6 +30,8 @@
     "@types/node": "^20.11.24",
     "@typescript-eslint/eslint-plugin": "^7.1.1",
     "@typescript-eslint/parser": "^7.1.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.6",
     "eslint": "^8.57.0",
     "nodemon": "^3.1.0",
     "prettier": "^3.2.5",

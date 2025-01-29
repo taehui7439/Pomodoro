@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import { HttpError } from "./models/http-error";
+import { connectDB } from "./config/database";
 
 import usersRouter from "./routes/users";
 import timerRouter from "./routes/timer";
@@ -39,7 +40,9 @@ app.use((error: any, req: any, res: any, next: any) => {
     .json({ message: error.message || "알 수 없는 오류" });
 });
 
-// 서버 시작
-app.listen(port, () => {
-  console.log(`⚡️[서버]: 서버가 http://localhost:${port} 에서 실행중입니다`);
+// 서버 시작 전 DB 연결
+connectDB().then(() => {
+  app.listen(port, () => {
+    console.log(`⚡️[서버]: 서버가 http://localhost:${port} 에서 실행중입니다`);
+  });
 });
