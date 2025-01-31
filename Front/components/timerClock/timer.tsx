@@ -32,7 +32,7 @@ const Timer = React.memo(({ isRunning, onStart, onPause, onReset }: TimerButtonP
         </button>
       ) : (
         <>
-          <button className="w-[50px] h-[50px] bg-[rgba(242,105,13,0.44)] rounded-[30px]">
+          <button className="w-[50px] h-[50px] bg-[rgba(242,105,13,0.44)] rounded-[30px] hover:bg-orange-600 transition-colors">
             <div
               className="flex flex-row justify-center items-center p-[6px] px-[8px] gap-[10px]"
               onClick={isRunning ? handlePause : handleStart}
@@ -41,7 +41,7 @@ const Timer = React.memo(({ isRunning, onStart, onPause, onReset }: TimerButtonP
             </div>
           </button>
           <button
-            className="w-[50px] h-[50px] bg-[rgba(242,105,13,0.44)] rounded-[30px]"
+            className="w-[50px] h-[50px] bg-[rgba(242,105,13,0.44)] rounded-[30px] hover:bg-orange-600 transition-colors"
             onClick={onReset}
           >
             <div className="flex flex-row justify-center items-center p-[6px] px-[8px] gap-[10px]">
