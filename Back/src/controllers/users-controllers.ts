@@ -1,5 +1,4 @@
 import { HttpError } from "../models/http-error";
-import { v4 as uuid } from "uuid";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 

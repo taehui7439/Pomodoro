@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { HttpError } from "../models/http-error";
-import { v4 as uuid } from "uuid";
 import { config } from "dotenv";
 
 import { validate } from "../validator/validate";
@@ -44,15 +43,19 @@ const createTimerRecord = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { email } = req.body;
+  const { email, startTime, endTime, duration } = req.body;
+
+  // 요청 데이터 검증
+  if (!email || !startTime || !endTime || duration === undefined) {
+    return next(new HttpError("필수 데이터가 누락되었습니다.", 400));
+  }
 
   const newRecord = new Timer({
-    id: uuid(),
     userId: email,
     date: new Date().toISOString().split("T")[0],
-    startTime: req.body.startTime,
-    endTime: req.body.endTime,
-    duration: req.body.duration,
+    startTime,
+    endTime,
+    duration,
   });
 
   try {

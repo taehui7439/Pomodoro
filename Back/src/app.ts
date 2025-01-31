@@ -15,11 +15,20 @@ const app: Express = express();
 const port = process.env.PORT || 4000;
 
 // 미들웨어 설정
-// app.use(cors());
-// app.use(helmet());
-// app.use(morgan("dev"));
+app.use(helmet());
+app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// cors 설정
+app.use(
+  cors({
+    origin: "http://localhost:3000", // 프론트엔드 주소
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.use("/users", usersRouter);
 app.use("/timer", timerRouter);
