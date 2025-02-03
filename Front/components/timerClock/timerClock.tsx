@@ -1,27 +1,26 @@
 "use client";
 
-import React, { useCallback, useState, useEffect } from "react";
+import React, { useCallback, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
 import Timer from "./timer";
 import { createTimerRecord } from "@/api/createRecord";
-import { start } from "repl";
 
 export default function TimerClock() {
   // 25분을 초로 변환 = 1500
-  // 테스트로 60초 적용
-  const TOTAL_TIME = 60;
-
+  const TOTAL_TIME = 1500;
   // 남은 시간 및 타이머 동작 확인 상태
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [isRunning, setIsRunning] = useState(false);
-
   // 시간 초과 상태
   const [isOvertime, setIsOvertime] = useState(false);
   const [overtimeSeconds, setOvertimeSeconds] = useState(0);
-
-  // 타이머 시작 시간
-  const [startTime, setStartTime] = useState("");
+  // 시작 시간 관리
+  const [times, setTimes] = useState({
+    currentTime: "00:00",
+    endTime: "00:25",
+  });
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // 타이머 시작 시간 가져오기
   // 현재 시간과 25분 후 시간 계산
@@ -33,36 +32,26 @@ export default function TimerClock() {
     });
   };
 
+  // 현재 시간과 예상 종료 시간 계산
   const getCurrentAndEndTime = () => {
     const now = new Date();
-    const end = new Date(now.getTime() + 25 * 60000); // 25분을 밀리초로 변환
+    const end = new Date(now.getTime() + TOTAL_TIME * 1000); // 25분을 밀리초로 변환
 
     return {
       currentTime: formatTime(now),
       endTime: formatTime(end),
     };
   };
-  // 시작 시간 관리
-  const [times, setTimes] = useState(getCurrentAndEndTime());
 
-  // 1분마다 예상 시간 업데이트
+  // 컴포넌트 마운트 시 초기 시간 설정
   useEffect(() => {
-    // 타이머가 동작하는 경우 시간을 업데이트 하지 않음
-    if (!isRunning) {
-      const interval = setInterval(() => {
-        setTimes(getCurrentAndEndTime());
-      }, 60000);
-
-      return () => clearInterval(interval);
-    }
-  }, [isRunning]);
+    setTimes(getCurrentAndEndTime());
+  }, []);
 
   // 타이머 동작 로직
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-
     if (isRunning) {
-      interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         if (timeLeft > 0) {
           setTimeLeft((prev) => prev - 1);
         } else {
@@ -72,21 +61,17 @@ export default function TimerClock() {
       }, 1000);
     }
 
-    return () => clearInterval(interval);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [isRunning, timeLeft]);
 
   // 시간 포맷팅 (mm:ss)
   const viewTimeLeft = () => {
-    if (!isOvertime) {
-      const minutes = Math.floor(timeLeft / 60);
-      const seconds = timeLeft % 60;
-      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    } else {
-      const totalSeconds = TOTAL_TIME + overtimeSeconds;
-      const minutes = Math.floor(totalSeconds / 60);
-      const seconds = totalSeconds % 60;
-      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-    }
+    const totalSeconds = isOvertime ? TOTAL_TIME + overtimeSeconds : timeLeft;
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   };
 
   const timeDisplay = viewTimeLeft();
@@ -98,8 +83,7 @@ export default function TimerClock() {
       return 150;
     }
     const progress = (timeLeft / TOTAL_TIME) * 100;
-    const angle = (progress / 100) * 150;
-    return angle;
+    return (progress / 100) * 150;
   };
 
   // 부채꼴 path 생성
@@ -160,6 +144,8 @@ export default function TimerClock() {
     setTimeLeft(TOTAL_TIME);
     setIsOvertime(false);
     setOvertimeSeconds(0);
+    // 시간 초기화
+    setTimes(getCurrentAndEndTime());
   }, [isRunning, times.currentTime, timeLeft, isOvertime, overtimeSeconds]);
 
   // Arrow 이미지 컴포넌트 분리 및 메모이제이션

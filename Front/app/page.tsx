@@ -1,15 +1,25 @@
 import Category from "@/components/category/category";
+import TimeLine from "@/components/timeLine/timeLine";
 import TimerClock from "@/components/timerClock/timerClock";
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-      <div className="flex flex-col justify-center items-center p-4 px-1 gap-3">
-        <h1 className="text-2xl font-bold text-foreground mb-4">무엇을 집중하실건가요?</h1>
-        <Category />
-      </div>
+    <div className="flex flex-row">
+      {/* 왼쪽 부분 */}
+      <div className="min-h-screen flex flex-col flex-1 items-center justify-center bg-background">
+        <div className="flex flex-col justify-center items-center p-4 px-1 gap-3">
+          <h1 className="text-2xl font-bold text-foreground mb-4">무엇을 집중하실건가요?</h1>
+          <Category />
+        </div>
 
-      <TimerClock />
+        <TimerClock />
+      </div>
+      {/* 중간 선 */}
+      <div className="border-l border-gray-300"></div>
+      {/* 오른쪽 부분 */}
+      <div className="min-h-screen flex flex-col flex-1 items-center justify-center bg-background">
+        <TimeLine />
+      </div>
     </div>
   );
 }
