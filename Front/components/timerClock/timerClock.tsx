@@ -5,6 +5,7 @@ import Image from "next/image";
 
 import Timer from "./timer";
 import { createTimerRecord } from "@/api/createRecord";
+import userTimerStore from "@/store/useTimerStore";
 
 export default function TimerClock() {
   // 25분을 초로 변환 = 1500
@@ -122,6 +123,8 @@ export default function TimerClock() {
   // 타이머 동작
   const startTimer = useCallback(() => {
     setIsRunning(true);
+    // 시작 시간 업데이트
+    setTimes(getCurrentAndEndTime());
   }, []);
   const pauseTimer = useCallback(() => setIsRunning(false), []);
   const resetTimer = useCallback(async () => {
@@ -131,6 +134,12 @@ export default function TimerClock() {
         const startTime = times.currentTime;
         const endTime = formatTime(now);
         const duration = isOvertime ? TOTAL_TIME + overtimeSeconds : TOTAL_TIME - timeLeft;
+
+        // 타이머 박스 추가
+        userTimerStore.getState().addTimerBox({
+          startTime,
+          endTime,
+        });
 
         // 테스트용 이메일 사용, 로그인 기능 구현시 이메일을 가져오도록 설정해야함
         await createTimerRecord("3@test.com", startTime, endTime, Math.ceil(duration / 60));

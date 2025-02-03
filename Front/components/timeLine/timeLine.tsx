@@ -1,50 +1,68 @@
 "use client";
 
+import { ReadTimerRecord } from "@/api/readRecord";
+import userTimerStore from "@/store/useTimerStore";
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { start } from "repl";
-
-interface TimerBox {
-  startTime: string;
-  endTime: string;
-}
 
 const TimeLine = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [containerH, setContainerH] = useState(0);
   // 타임라인 기록을 위한 상태
-  const [timerBoxes, setTimerBoxes] = useState<TimerBox[]>([]);
+  const timerBoxes = userTimerStore((state) => state.timerBoxes);
+  const setTimerBoxes = userTimerStore((state) => state.setTimerBoxes);
+  // 타임라인 컨테이너에 대한 참조
   const timeLineRef = useRef<HTMLDivElement>(null);
 
   // 컨테이너 높이 측정 및 업데이트
   useEffect(() => {
     const updateHeight = () => {
       if (timeLineRef.current) {
+        // 현재 컨테이너의 높이를 상태에 저장
         setContainerH(timeLineRef.current.clientHeight);
       }
     };
 
+    // 컴포넌트가 마운트될 때 높이 측정
     updateHeight();
 
+    // 윈도우 리사이즈 시 높이 업데이트
     window.addEventListener("resize", updateHeight);
 
     return () => {
+      // 컴포넌트 언마운트 시 이벤트 리스너 제거
       window.removeEventListener("resize", updateHeight);
     };
   }, []);
 
-  // 현재 시간을 1분마다 업데이트 및 스크롤 위치 조정
+  // 현재 시간을 1분마다 업데이트
   useEffect(() => {
     const interval = setInterval(() => {
+      // 1분마다 현재 시간을 업데이트
       setCurrentTime(new Date());
     }, 60000);
 
     return () => clearInterval(interval);
   }, []);
 
+  useEffect(() => {
+    const fetchTimerRecords = async () => {
+      try {
+        const records = await ReadTimerRecord("3@test.com");
+        setTimerBoxes(records);
+      } catch (err) {
+        console.log("타이머 기록 조회 실패:", err);
+      }
+    };
+
+    fetchTimerRecords();
+  }, [setTimerBoxes]);
+
   // 시간대 생성 (00:00 AM부터 12:00 PM까지)
   const timeSlots = useMemo(
     () =>
       Array.from({ length: 25 }, (_, i) => {
+        // 24시간 형식으로 시간 계산
         const hour = i % 24;
         return `${String(hour).padStart(2, "0")}:00 ${hour < 12 ? "AM" : "PM"}`;
       }),
@@ -57,6 +75,7 @@ const TimeLine = () => {
 
     const hours = currentTime.getHours();
     const minutes = currentTime.getMinutes();
+    // 현재 시간의 위치를 퍼센트로 계산
     return ((hours * 60 + minutes) / containerH) * 100;
   }, [currentTime, containerH]);
 
@@ -64,6 +83,7 @@ const TimeLine = () => {
   const calculateBoxPosition = (time: string) => {
     const [hours, minutes] = time.split(":").map(Number);
 
+    // 주어진 시간의 위치를 퍼센트로 계산
     return ((hours * 60 + minutes) / containerH) * 100;
   };
 
@@ -95,7 +115,7 @@ const TimeLine = () => {
           {timerBoxes.map((box, i) => (
             <div
               key={i}
-              className="absolute right-0 w-[calc(100%-20px)] bg-orange-100 rounded-l-md border-l-4 border-orange-500"
+              className="absolute right-[100px] w-[calc(64%)] bg-orange-500 rounded-md border-l-4 border-orange-500"
               style={{
                 top: `${calculateBoxPosition(box.startTime)}%`,
                 height: `${calculateBoxHeight(box.startTime, box.endTime)}%`,
