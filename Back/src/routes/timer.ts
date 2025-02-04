@@ -12,7 +12,12 @@ const {
 } = require("../controllers/timer-controllers");
 
 // 타이머 기록 조회
-timerRouter.get("/:email", timerValidators.getTimer, validate, getTimerRecords);
+timerRouter.get(
+  "/:email/:date",
+  timerValidators.getTimer,
+  validate,
+  getTimerRecords
+);
 
 // 타이머 기록 생성
 timerRouter.post(

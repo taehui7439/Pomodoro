@@ -1,8 +1,8 @@
 import { apiAddress } from "@/constant/apiAddress";
 
-export const ReadTimerRecord = async (email: string) => {
+export const ReadTimerRecord = async (email: string, date: string) => {
   try {
-    const response = await fetch(`${apiAddress.readRecord}/3@test.com`);
+    const response = await fetch(`${apiAddress.readRecord}/${email}/${date}`);
 
     if (!response.ok) {
       console.error("응답 상태:", response);

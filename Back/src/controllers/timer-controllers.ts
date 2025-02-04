@@ -21,14 +21,15 @@ const getTimerRecords = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { email } = req.params;
+  const { email, date } = req.params;
 
   try {
     // 데이터 조회
-    const userRecords = await Timer.find({ userId: email }).exec();
+    const userRecords = await Timer.find({ userId: email, date: date }).exec();
 
     if (!userRecords.length) {
-      return next(new HttpError("타이머 기록을 찾을 수 없습니다.", 404));
+      // 데이터가 없는 경우 빈 배열 반환
+      return res.json({ records: [] });
     }
 
     res.json({ records: userRecords });
