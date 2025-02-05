@@ -1,16 +1,19 @@
 "use client";
 
+import React, { useEffect, useRef, useState, useMemo } from "react";
+
+import DataSelector from "./dateSelector";
 import { ReadTimerRecord } from "@/api/readRecord";
 import userTimerStore from "@/store/useTimerStore";
-import React, { useEffect, useRef, useState, useMemo } from "react";
-import { start } from "repl";
+import useDateStore from "@/store/useDateStore";
 
 const TimeLine = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [containerH, setContainerH] = useState(0);
   // 타임라인 기록을 위한 상태
-  const timerBoxes = userTimerStore((state) => state.timerBoxes);
-  const setTimerBoxes = userTimerStore((state) => state.setTimerBoxes);
+  const { timerBoxes, setTimerBoxes } = userTimerStore();
+  // 날짜 변경을 위한 상태
+  const { selectDate, setSelectDate } = useDateStore();
   // 타임라인 컨테이너에 대한 참조
   const timeLineRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +51,7 @@ const TimeLine = () => {
   useEffect(() => {
     const fetchTimerRecords = async () => {
       try {
-        const records = await ReadTimerRecord("3@test.com");
+        const records = await ReadTimerRecord("3@test.com", selectDate);
         setTimerBoxes(records);
       } catch (err) {
         console.log("타이머 기록 조회 실패:", err);
@@ -56,7 +59,7 @@ const TimeLine = () => {
     };
 
     fetchTimerRecords();
-  }, [setTimerBoxes]);
+  }, [selectDate, setTimerBoxes]);
 
   // 시간대 생성 (00:00 AM부터 12:00 PM까지)
   const timeSlots = useMemo(
@@ -97,41 +100,44 @@ const TimeLine = () => {
 
   return (
     <div className="relative w-full h-full flex flex-col justify-center items-center p-0 pl-5 gap-8 isolate overflow-scroll bg-white border-l border-r border-gray-300 border-opacity-10">
+      <div className="relative top-0 z-10 w-full bg-white pb-4">
+        <DataSelector />
+      </div>
+
       {/* 타임라인 컨테이너 */}
-      <div
-        ref={timeLineRef}
-        className="fixed w-[50%] h-[80vh] border-l border-gray-200 overflow-y-auto"
-      >
-        {/* 시간 표시 컨테이너 */}
-        <div className="relative h-full border-gray-200 ml-[70px]">
-          {/* 시간대 표시 */}
-          {timeSlots.map((time, index) => (
-            <div key={index} className="relative h-[60px] border-b border-gray-100">
-              <span className="absolute -left-[70px] top-0 text-xs text-gray-400">{time}</span>
-            </div>
-          ))}
+      <div className="w-full h-[calc(100%-60px)] relative">
+        <div ref={timeLineRef} className="h-[80vh] border-l border-gray-200 overflow-y-auto">
+          {/* 시간 표시 컨테이너 */}
+          <div className="relative h-full border-gray-200 ml-[70px]">
+            {/* 시간대 표시 */}
+            {timeSlots.map((time, index) => (
+              <div key={index} className="relative h-[60px] border-b border-gray-100">
+                <span className="absolute -left-[70px] top-0 text-xs text-gray-400">{time}</span>
+              </div>
+            ))}
 
-          {/* 타이머 기록 박스들 */}
-          {timerBoxes.map((box, i) => (
+            {/* 타이머 기록 박스들 */}
+            {timerBoxes.map((box, i) => (
+              <div
+                key={i}
+                className="absolute right-[100px] w-[calc(64%)] bg-orange-500 rounded-md border-l-4 border-orange-500"
+                style={{
+                  top: `${calculateBoxPosition(box.startTime)}%`,
+                  height: `${calculateBoxHeight(box.startTime, box.endTime)}%`,
+                }}
+              />
+            ))}
+
+            {/* 현재 시간 표시선 */}
             <div
-              key={i}
-              className="absolute right-[100px] w-[calc(64%)] bg-orange-500 rounded-md border-l-4 border-orange-500"
+              className="absolute left-0 w-full h-[2px] bg-red-500"
               style={{
-                top: `${calculateBoxPosition(box.startTime)}%`,
-                height: `${calculateBoxHeight(box.startTime, box.endTime)}%`,
+                top: `${getCurrentTimePosition}%`,
+                transform: "translateY(-50%)",
               }}
-            />
-          ))}
-
-          {/* 현재 시간 표시선 */}
-          <div
-            className="absolute left-0 w-full h-[2px] bg-red-500"
-            style={{
-              top: `${getCurrentTimePosition}%`,
-              transform: "translateY(-50%)",
-            }}
-          >
-            <div className="absolute -left-[6px] -top-[4px] w-[10px] h-[10px] bg-red-500 rounded-full" />
+            >
+              <div className="absolute -left-[6px] -top-[4px] w-[10px] h-[10px] bg-red-500 rounded-full" />
+            </div>
           </div>
         </div>
       </div>
