@@ -99,14 +99,14 @@ const TimeLine = () => {
   };
 
   return (
-    <div className="relative w-full h-full flex flex-col justify-center items-center p-0 pl-5 gap-8 isolate overflow-scroll bg-white border-l border-r border-gray-300 border-opacity-10">
+    <div className="relative w-full h-full flex flex-col justify-center items-center p-0 pl-2 gap-8 isolate overflow-scroll bg-white border-l border-r border-gray-300 border-opacity-10">
       <div className="relative top-0 z-10 w-full bg-white pb-4">
         <DataSelector />
       </div>
 
       {/* 타임라인 컨테이너 */}
       <div className="w-full h-[calc(100%-60px)] relative">
-        <div ref={timeLineRef} className="h-[80vh] border-l border-gray-200 overflow-y-auto">
+        <div ref={timeLineRef} className="h-[80vh] border-gray-200 overflow-y-auto">
           {/* 시간 표시 컨테이너 */}
           <div className="relative h-full border-gray-200 ml-[70px]">
             {/* 시간대 표시 */}
