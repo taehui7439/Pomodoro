@@ -48,7 +48,7 @@ const signup = async (req: any, res: any, next: any) => {
       token,
     });
   } catch (err) {
-    return next(new HttpError("회원가입 실패", 500));
+    return next(new HttpError("회원가입 실패: " + err, 500));
   }
 };
 
