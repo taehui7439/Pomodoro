@@ -1,8 +1,18 @@
 import { apiAddress } from "@/constant/apiAddress";
+import useAuthStore from "@/store/useAuthStore";
 
 export const ReadTimerRecord = async (email: string, date: string) => {
+  const { token } = useAuthStore();
+
   try {
-    const response = await fetch(`${apiAddress.readRecord}/${email}/${date}`);
+    const response = await fetch(`${apiAddress.readRecord}/${email}/${date}`, {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     if (!response.ok) {
       console.error("응답 상태:", response);

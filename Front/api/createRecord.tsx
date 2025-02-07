@@ -1,4 +1,5 @@
 import { apiAddress } from "@/constant/apiAddress";
+import useAuthStore from "@/store/useAuthStore";
 
 export const createTimerRecord = async (
   email: string,
@@ -6,12 +7,15 @@ export const createTimerRecord = async (
   endTime: string,
   duration: number,
 ) => {
+  const { token } = useAuthStore();
+
   try {
     const response = await fetch(apiAddress.createRecord, {
       method: "POST",
       credentials: "include",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         email: email,

@@ -2,6 +2,7 @@ import express, { Router } from "express";
 
 import { timerValidators } from "../validator/validator";
 import { validate } from "../validator/validate";
+import { checkAuth } from "../middleware/check-auth";
 
 const timerRouter: Router = express.Router();
 
@@ -10,6 +11,9 @@ const {
   createTimerRecord,
   deleteTimerRecord,
 } = require("../controllers/timer-controllers");
+
+// 라우트 보호
+timerRouter.use(checkAuth);
 
 // 타이머 기록 조회
 timerRouter.get(

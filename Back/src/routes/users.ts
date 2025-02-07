@@ -1,4 +1,3 @@
-import { error } from "console";
 import express, { Router } from "express";
 
 import { userValidators } from "../validator/validator";
