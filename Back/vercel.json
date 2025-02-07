@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ],
+  "build": {
+    "env": {
+      "NODE_ENV": "development"
+    },
+    "commands": {
+      "install": "npm install"
+    }
+  }
+}
