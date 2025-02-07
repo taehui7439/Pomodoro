@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-import { SignUp } from "@/api/\bsignUp";
+import { SignUp } from "@/api/signUp";
 import { logIn } from "@/api/logIn";
 import { persist } from "zustand/middleware";
 

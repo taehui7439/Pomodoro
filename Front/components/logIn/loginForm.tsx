@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 
 import useAuthStore from "@/store/useAuthStore";
-import { SignUp } from "@/api/\bsignUp";
+import { SignUp } from "@/api/signUp";
 // import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const LoginForm = () => {
