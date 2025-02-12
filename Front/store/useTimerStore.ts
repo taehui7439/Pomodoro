@@ -7,7 +7,7 @@ interface TimerBox {
 
 interface TimerState {
   timerBoxes: TimerBox[];
-  addTimerBox: (box: TimerBox) => void;
+  addTimerBox: (boxes: TimerBox[]) => void;
   setTimerBoxes: (boxes: TimerBox[]) => void;
 }
 
@@ -15,9 +15,9 @@ const userTimerStore = create<TimerState>((set) => ({
   // 초기 상태로 배열 설정
   timerBoxes: [],
   // 기존 timerBoxes에 새로운 box 추가
-  addTimerBox: (box) =>
+  addTimerBox: (boxes) =>
     set((state) => ({
-      timerBoxes: [...state.timerBoxes, box],
+      timerBoxes: [...state.timerBoxes, ...boxes],
     })),
   // 새로운 배열로 설정
   setTimerBoxes: (boxes) => set({ timerBoxes: boxes }),
