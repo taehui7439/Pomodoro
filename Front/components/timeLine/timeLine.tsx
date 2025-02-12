@@ -60,14 +60,14 @@ const TimeLine = () => {
       try {
         const email = user.email;
         const records = await ReadTimerRecord(email, selectDate, token);
-        addTimerBox(records);
+        setTimerBoxes(records);
       } catch (err) {
         console.log("타이머 기록 조회 실패:", err);
       }
     };
 
     fetchTimerRecords();
-  }, [selectDate]);
+  }, [selectDate, setTimerBoxes]);
 
   // 시간대 생성 (00:00 AM부터 12:00 PM까지)
   const timeSlots = useMemo(
