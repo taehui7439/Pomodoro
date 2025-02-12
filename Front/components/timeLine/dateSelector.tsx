@@ -71,7 +71,6 @@ const DataSelector = () => {
             key={date.full}
             onClick={() => {
               setSelectDate(date.full);
-              console.log(new Date().toISOString().split("T")[0]);
             }}
             className={`flex flex-col items-center w-12 p-2 rounded ${
               i === 3 ? "bg-orange-500 text-white" : "hover:bg-orange-100"

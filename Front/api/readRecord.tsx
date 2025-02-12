@@ -1,9 +1,6 @@
 import { apiAddress } from "@/constant/apiAddress";
-import useAuthStore from "@/store/useAuthStore";
 
-export const ReadTimerRecord = async (email: string, date: string) => {
-  const { token } = useAuthStore();
-
+export const ReadTimerRecord = async (email: string, date: string, token: string) => {
   try {
     const response = await fetch(`${apiAddress.readRecord}/${email}/${date}`, {
       method: "GET",

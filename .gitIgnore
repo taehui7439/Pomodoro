@@ -45,3 +45,4 @@ logs/
 
 apiAddress.ts
 .github/
+.vercel

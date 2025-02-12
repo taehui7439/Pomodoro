@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 // cors 설정
 app.use(
   cors({
-    origin: "*", // 출처 허용
+    origin: ["http://localhost:3000"], // 출처 허용
     credentials: true, // 사용자 인증이 필요한 리소스
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

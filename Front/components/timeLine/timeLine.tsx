@@ -16,7 +16,7 @@ const TimeLine = () => {
   // 날짜 변경을 위한 상태
   const { selectDate, setSelectDate } = useDateStore();
   // 이메일을 위한 상태
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   // 타임라인 컨테이너에 대한 참조
   const timeLineRef = useRef<HTMLDivElement>(null);
 
@@ -53,9 +53,13 @@ const TimeLine = () => {
 
   useEffect(() => {
     const fetchTimerRecords = async () => {
+      if (!user) {
+        console.log("사용자 정보가 없습니다.");
+      }
+
       try {
         const email = user.email;
-        const records = await ReadTimerRecord(email, selectDate);
+        const records = await ReadTimerRecord(email, selectDate, token);
         setTimerBoxes(records);
       } catch (err) {
         console.log("타이머 기록 조회 실패:", err);
