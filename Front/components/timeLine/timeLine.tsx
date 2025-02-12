@@ -12,7 +12,7 @@ const TimeLine = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [containerH, setContainerH] = useState(0);
   // 타임라인 기록을 위한 상태
-  const { timerBoxes, setTimerBoxes } = userTimerStore();
+  const { timerBoxes, setTimerBoxes, addTimerBox } = userTimerStore();
   // 날짜 변경을 위한 상태
   const { selectDate, setSelectDate } = useDateStore();
   // 이메일을 위한 상태
@@ -60,14 +60,14 @@ const TimeLine = () => {
       try {
         const email = user.email;
         const records = await ReadTimerRecord(email, selectDate, token);
-        setTimerBoxes(records);
+        addTimerBox(records);
       } catch (err) {
         console.log("타이머 기록 조회 실패:", err);
       }
     };
 
     fetchTimerRecords();
-  }, [selectDate, setTimerBoxes]);
+  }, [selectDate]);
 
   // 시간대 생성 (00:00 AM부터 12:00 PM까지)
   const timeSlots = useMemo(
