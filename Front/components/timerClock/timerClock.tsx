@@ -22,7 +22,7 @@ export default function TimerClock() {
     currentTime: "00:00",
     endTime: "00:25",
   });
-  const { user } = useAuthStore();
+  const { user, token } = useAuthStore();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // 타이머 시작 시간 가져오기
@@ -138,13 +138,15 @@ export default function TimerClock() {
         const duration = isOvertime ? TOTAL_TIME + overtimeSeconds : TOTAL_TIME - timeLeft;
 
         // 타이머 박스 추가
-        userTimerStore.getState().addTimerBox({
-          startTime,
-          endTime,
-        });
+        userTimerStore.getState().addTimerBox([
+          {
+            startTime,
+            endTime,
+          },
+        ]);
 
         // 테스트용 이메일 사용, 로그인 기능 구현시 이메일을 가져오도록 설정해야함
-        await createTimerRecord(user.email, startTime, endTime, Math.ceil(duration / 60));
+        await createTimerRecord(user.email, startTime, endTime, Math.ceil(duration / 60), token);
       } catch (error) {
         console.error("타이머 기록 생성 중 오류 발생:", error);
       }

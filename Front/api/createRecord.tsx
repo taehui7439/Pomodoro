@@ -6,9 +6,8 @@ export const createTimerRecord = async (
   startTime: string,
   endTime: string,
   duration: number,
+  token: string,
 ) => {
-  const { token } = useAuthStore();
-
   try {
     const response = await fetch(apiAddress.createRecord, {
       method: "POST",

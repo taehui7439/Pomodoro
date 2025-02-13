@@ -8,17 +8,61 @@ import userTimerStore from "@/store/useTimerStore";
 import useDateStore from "@/store/useDateStore";
 import useAuthStore from "@/store/useAuthStore";
 
+// 성능 측정을 위한 유틸리티 함수
+// const measurePerformance = async (action: () => void | Promise<void>, iterations: number = 1) => {
+//   const times: number[] = [];
+
+//   for (let i = 0; i < iterations; i++) {
+//     const start = performance.now();
+//     await action();
+//     const end = performance.now();
+//     times.push(end - start);
+//   }
+
+//   return {
+//     average: times.reduce((a, b) => a + b, 0) / times.length,
+//     min: Math.min(...times),
+//     max: Math.max(...times),
+//     median: times.sort((a, b) => a - b)[Math.floor(times.length / 2)],
+//   };
+// };
+
 const TimeLine = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [containerH, setContainerH] = useState(0);
+  const [performanceResults, setPerformanceResults] = useState<any>(null);
+
   // 타임라인 기록을 위한 상태
   const { timerBoxes, setTimerBoxes, addTimerBox } = userTimerStore();
   // 날짜 변경을 위한 상태
   const { selectDate, setSelectDate } = useDateStore();
   // 이메일을 위한 상태
   const { user, token } = useAuthStore();
+
   // 타임라인 컨테이너에 대한 참조
   const timeLineRef = useRef<HTMLDivElement>(null);
+
+  // const runPerformanceTests = async () => {
+  //   const generateTimerBox = (index: number) => ({
+  //     startTime: `${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
+  //     endTime: `${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
+  //   });
+
+  //   // 1. 단일 값 업데이트 테스트
+  //   const singleUpdateResult = await measurePerformance(() => {
+  //     const data = generateTimerBox(0);
+  //     addTimerBox([data]);
+  //   }, 100);
+
+  //   // 2. 대량 데이터 업데이트 테스트
+  //   const bulkData = Array.from({ length: 100 }, (_, i) => generateTimerBox(i));
+  //   const bulkUpdateResult = await measurePerformance(() => setTimerBoxes(bulkData), 10);
+
+  //   setPerformanceResults({
+  //     singleUpdate: singleUpdateResult,
+  //     bulkUpdate: bulkUpdateResult,
+  //   });
+  // };
 
   // 컨테이너 높이 측정 및 업데이트
   useEffect(() => {
@@ -149,6 +193,33 @@ const TimeLine = () => {
           </div>
         </div>
       </div>
+
+      {/* 성능 테스트 버튼 및 결과 표시 */}
+      {/* <div className="mt-4 px-4">
+        <button
+          onClick={() => runPerformanceTests()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Run Performance Tests
+        </button>
+
+        {performanceResults && (
+          <div className="mt-4 p-4 bg-gray-50 rounded">
+            <h3 className="font-bold mb-2">Performance Results (ms)</h3>
+            {Object.entries(performanceResults).map(([testName, results]: [string, any]) => (
+              <div key={testName} className="mb-2">
+                <p className="font-semibold">{testName}:</p>
+                <ul className="ml-4">
+                  <li>Average: {results.average.toFixed(2)}ms</li>
+                  <li>Min: {results.min.toFixed(2)}ms</li>
+                  <li>Max: {results.max.toFixed(2)}ms</li>
+                  <li>Median: {results.median.toFixed(2)}ms</li>
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </div> */}
     </div>
   );
 };
