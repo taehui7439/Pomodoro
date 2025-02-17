@@ -2,6 +2,12 @@
 
 import React, { useCallback, useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import {
+  useMutation,
+  useQueryClient,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 
 import Timer from "./timer";
 import { createTimerRecord } from "@/api/createRecord";
@@ -24,6 +30,36 @@ export default function TimerClock() {
   });
   const { user, token } = useAuthStore();
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const queryClient = useQueryClient();
+
+  const createRecordMutation = useMutation({
+    mutationFn: async ({
+      email,
+      startTime,
+      endTime,
+      duration,
+      token,
+    }: {
+      email: string;
+      startTime: string;
+      endTime: string;
+      duration: number;
+      token: string;
+    }) => {
+      return createTimerRecord(email, startTime, endTime, duration, token);
+    },
+    onSuccess: () => {
+      // 타이머 기록이 추가되면 타이머 기록 목록 갱신
+      if (user && user.email) {
+        queryClient.invalidateQueries({ queryKey: ["timerRecords", user.email] });
+      } else {
+        console.error("사용자 이메일이 없습니다.");
+      }
+    },
+    onError: (error) => {
+      console.error("타이머 기록 생성 변이 실패:", error);
+    },
+  });
 
   // 타이머 시작 시간 가져오기
   // 현재 시간과 25분 후 시간 계산
@@ -137,6 +173,7 @@ export default function TimerClock() {
         const endTime = formatTime(now);
         const duration = isOvertime ? TOTAL_TIME + overtimeSeconds : TOTAL_TIME - timeLeft;
 
+        // 로컬 상태 먼저 업데이트
         // 타이머 박스 추가
         userTimerStore.getState().addTimerBox([
           {
@@ -145,8 +182,14 @@ export default function TimerClock() {
           },
         ]);
 
-        // 테스트용 이메일 사용, 로그인 기능 구현시 이메일을 가져오도록 설정해야함
-        await createTimerRecord(user.email, startTime, endTime, Math.ceil(duration / 60), token);
+        // React Query mutation 실행
+        await createRecordMutation.mutateAsync({
+          email: user.email,
+          startTime,
+          endTime,
+          duration: Math.ceil(duration / 60),
+          token: token,
+        });
       } catch (error) {
         console.error("타이머 기록 생성 중 오류 발생:", error);
       }
@@ -159,7 +202,7 @@ export default function TimerClock() {
     setOvertimeSeconds(0);
     // 시간 초기화
     setTimes(getCurrentAndEndTime());
-  }, [isRunning, times.currentTime, timeLeft, isOvertime, overtimeSeconds]);
+  }, [isRunning, times.currentTime, timeLeft, isOvertime, overtimeSeconds, createRecordMutation]);
 
   // Arrow 이미지 컴포넌트 분리 및 메모이제이션
   const ArrowImage = React.memo(() => (

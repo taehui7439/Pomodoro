@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
+import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import DataSelector from "./dateSelector";
 import { ReadTimerRecord } from "@/api/readRecord";
@@ -33,7 +34,7 @@ const TimeLine = () => {
   const [performanceResults, setPerformanceResults] = useState<any>(null);
 
   // 타임라인 기록을 위한 상태
-  const { timerBoxes, setTimerBoxes, addTimerBox } = userTimerStore();
+  const { setTimerBoxes } = userTimerStore();
   // 날짜 변경을 위한 상태
   const { selectDate, setSelectDate } = useDateStore();
   // 이메일을 위한 상태
@@ -42,27 +43,33 @@ const TimeLine = () => {
   // 타임라인 컨테이너에 대한 참조
   const timeLineRef = useRef<HTMLDivElement>(null);
 
-  // const runPerformanceTests = async () => {
-  //   const generateTimerBox = (index: number) => ({
-  //     startTime: `${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
-  //     endTime: `${String(Math.floor(Math.random() * 24)).padStart(2, "0")}:${String(Math.floor(Math.random() * 60)).padStart(2, "0")}`,
-  //   });
+  // React Query를 사용한 데이터 fetching
+  const { data: timerBoxes = [] } = useQuery({
+    queryKey: ["timerRecords", user?.email, selectDate],
+    queryFn: async () => {
+      if (!user) {
+        console.log("사용자 정보가 없습니다.");
+        return [];
+      }
+      return await ReadTimerRecord(user.email, selectDate, token);
+    },
+    staleTime: 5 * 60 * 1000, // 5분 동안 데이터를 fresh로 유지
+    gcTime: 30 * 60 * 1000, // 30분 동안 캐시 유지
+    throwOnError: true,
+    enabled: !!user?.email,
+  });
 
-  //   // 1. 단일 값 업데이트 테스트
-  //   const singleUpdateResult = await measurePerformance(() => {
-  //     const data = generateTimerBox(0);
-  //     addTimerBox([data]);
-  //   }, 100);
+  // 데이터 로드되면 타이머 박스 상태 업데이트
+  useEffect(() => {
+    if (timerBoxes && timerBoxes.length > 0) {
+      // Zustand의 상태와 비교하여 변동이 있을 때만 업데이트
+      const currentBoxes = userTimerStore.getState().timerBoxes;
 
-  //   // 2. 대량 데이터 업데이트 테스트
-  //   const bulkData = Array.from({ length: 100 }, (_, i) => generateTimerBox(i));
-  //   const bulkUpdateResult = await measurePerformance(() => setTimerBoxes(bulkData), 10);
-
-  //   setPerformanceResults({
-  //     singleUpdate: singleUpdateResult,
-  //     bulkUpdate: bulkUpdateResult,
-  //   });
-  // };
+      if (JSON.stringify(currentBoxes) !== JSON.stringify(timerBoxes)) {
+        setTimerBoxes(timerBoxes);
+      }
+    }
+  }, [timerBoxes, setTimerBoxes]);
 
   // 컨테이너 높이 측정 및 업데이트
   useEffect(() => {
@@ -86,32 +93,14 @@ const TimeLine = () => {
   }, []);
 
   // 현재 시간을 1분마다 업데이트
-  useEffect(() => {
-    const interval = setInterval(() => {
-      // 1분마다 현재 시간을 업데이트
-      setCurrentTime(new Date());
-    }, 60000);
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     // 1분마다 현재 시간을 업데이트
+  //     setCurrentTime(new Date());
+  //   }, 60000);
 
-    return () => clearInterval(interval);
-  }, []);
-
-  useEffect(() => {
-    const fetchTimerRecords = async () => {
-      if (!user) {
-        console.log("사용자 정보가 없습니다.");
-      }
-
-      try {
-        const email = user.email;
-        const records = await ReadTimerRecord(email, selectDate, token);
-        setTimerBoxes(records);
-      } catch (err) {
-        console.log("타이머 기록 조회 실패:", err);
-      }
-    };
-
-    fetchTimerRecords();
-  }, [selectDate, setTimerBoxes]);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   // 시간대 생성 (00:00 AM부터 12:00 PM까지)
   const timeSlots = useMemo(
@@ -127,12 +116,12 @@ const TimeLine = () => {
   // 현재 시간의 위치를 계산 (퍼센트)
   const getCurrentTimePosition = useMemo(() => {
     if (containerH === 0) return 0;
-
-    const hours = currentTime.getHours();
-    const minutes = currentTime.getMinutes();
+    const date = new Date();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
     // 현재 시간의 위치를 퍼센트로 계산
     return ((hours * 60 + minutes) / containerH) * 100;
-  }, [currentTime, containerH]);
+  }, [containerH]);
 
   // 타이머 박스 위치 계산
   const calculateBoxPosition = (time: string) => {
@@ -193,33 +182,6 @@ const TimeLine = () => {
           </div>
         </div>
       </div>
-
-      {/* 성능 테스트 버튼 및 결과 표시 */}
-      {/* <div className="mt-4 px-4">
-        <button
-          onClick={() => runPerformanceTests()}
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Run Performance Tests
-        </button>
-
-        {performanceResults && (
-          <div className="mt-4 p-4 bg-gray-50 rounded">
-            <h3 className="font-bold mb-2">Performance Results (ms)</h3>
-            {Object.entries(performanceResults).map(([testName, results]: [string, any]) => (
-              <div key={testName} className="mb-2">
-                <p className="font-semibold">{testName}:</p>
-                <ul className="ml-4">
-                  <li>Average: {results.average.toFixed(2)}ms</li>
-                  <li>Min: {results.min.toFixed(2)}ms</li>
-                  <li>Max: {results.max.toFixed(2)}ms</li>
-                  <li>Median: {results.median.toFixed(2)}ms</li>
-                </ul>
-              </div>
-            ))}
-          </div>
-        )}
-      </div> */}
     </div>
   );
 };
