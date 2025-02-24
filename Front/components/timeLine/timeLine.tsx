@@ -1,32 +1,13 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useMemo } from "react";
-import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import DataSelector from "./dateSelector";
 import { ReadTimerRecord } from "@/api/readRecord";
 import userTimerStore from "@/store/useTimerStore";
 import useDateStore from "@/store/useDateStore";
 import useAuthStore from "@/store/useAuthStore";
-
-// 성능 측정을 위한 유틸리티 함수
-// const measurePerformance = async (action: () => void | Promise<void>, iterations: number = 1) => {
-//   const times: number[] = [];
-
-//   for (let i = 0; i < iterations; i++) {
-//     const start = performance.now();
-//     await action();
-//     const end = performance.now();
-//     times.push(end - start);
-//   }
-
-//   return {
-//     average: times.reduce((a, b) => a + b, 0) / times.length,
-//     min: Math.min(...times),
-//     max: Math.max(...times),
-//     median: times.sort((a, b) => a - b)[Math.floor(times.length / 2)],
-//   };
-// };
 
 const TimeLine = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -40,7 +21,7 @@ const TimeLine = () => {
   const { selectDate, setSelectDate } = useDateStore();
   // 이메일을 위한 상태
   const { user, token } = useAuthStore();
-
+  const queryClient = useQueryClient();
   // 타임라인 컨테이너에 대한 참조
   const timeLineRef = useRef<HTMLDivElement>(null);
 
@@ -68,29 +49,6 @@ const TimeLine = () => {
       prefetchTimerRecords(user?.email, token);
     }
   }, []);
-
-  // 세션 스토리지에서 데이터를 로드하는 함수
-  const loadFromSessionStorage = () => {
-    try {
-      const storedDate = sessionStorage.getItem("selected-date");
-      const storedTimerBoxes = sessionStorage.getItem("timer-boxes");
-
-      if (storedDate) {
-        setSelectDate(storedDate);
-      }
-
-      if (storedTimerBoxes) {
-        const parsedTimerBoxes = JSON.parse(storedTimerBoxes);
-        setTimerBoxes(parsedTimerBoxes);
-        return parsedTimerBoxes;
-      }
-
-      return null;
-    } catch (error) {
-      console.error("세션 스토리지 데이터 로드 실패:", error);
-      return null;
-    }
-  };
 
   // React Query를 사용한 데이터 fetching
   const { data: timerBoxes = [] } = useQuery({
