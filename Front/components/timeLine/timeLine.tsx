@@ -51,6 +51,7 @@ const TimeLine = () => {
         console.log("사용자 정보가 없습니다.");
         return [];
       }
+      console.log(`${new Date().toISOString().split("T")[0]} 기록 조회`);
       return await ReadTimerRecord(user.email, selectDate, token);
     },
     staleTime: 5 * 60 * 1000, // 5분 동안 데이터를 fresh로 유지

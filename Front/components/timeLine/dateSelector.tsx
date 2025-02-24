@@ -1,12 +1,17 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import Image from "next/image";
 import useDateStore from "@/store/useDateStore";
 
 const DataSelector = () => {
   // 날짜 변경을 위한 상태
   const { selectDate, setSelectDate } = useDateStore();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // 날짜 배열 생성
   const getDates = useMemo(() => {
@@ -35,6 +40,8 @@ const DataSelector = () => {
     },
     [selectDate, setSelectDate],
   );
+
+  if (!isClient) return null;
 
   return (
     <div className="p-[3px] px-[18px] gap-[6px]">
