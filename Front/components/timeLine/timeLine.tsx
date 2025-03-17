@@ -14,6 +14,7 @@ const TimeLine = () => {
   const [containerH, setContainerH] = useState(0);
   const [performanceResults, setPerformanceResults] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // 타임라인 기록을 위한 상태
   const { setTimerBoxes } = userTimerStore();
@@ -49,6 +50,29 @@ const TimeLine = () => {
       prefetchTimerRecords(user?.email, token);
     }
   }, []);
+
+  // 세션 스토리지에서 데이터를 로드하는 함수
+  const loadFromSessionStorage = () => {
+    try {
+      const storedDate = sessionStorage.getItem("selected-date");
+      const storedTimerBoxes = sessionStorage.getItem("timer-boxes");
+
+      if (storedDate) {
+        setSelectDate(storedDate);
+      }
+
+      if (storedTimerBoxes) {
+        const parsedTimerBoxes = JSON.parse(storedTimerBoxes);
+        setTimerBoxes(parsedTimerBoxes);
+        return parsedTimerBoxes;
+      }
+
+      return null;
+    } catch (error) {
+      console.error("세션 스토리지 데이터 로드 실패:", error);
+      return null;
+    }
+  };
 
   // React Query를 사용한 데이터 fetching
   const { data: timerBoxes = [] } = useQuery({
@@ -92,7 +116,7 @@ const TimeLine = () => {
     staleTime: 5 * 60 * 1000, // 5분 동안 데이터를 fresh로 유지
     gcTime: 30 * 60 * 1000, // 30분 동안 캐시 유지
     throwOnError: true,
-    enabled: !!user?.email && !!selectDate && !isInitialized,
+    enabled: !!user?.email && !isInitialized,
   });
 
   // 데이터 로드되면 타이머 박스 상태 업데이트
