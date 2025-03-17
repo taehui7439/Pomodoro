@@ -33,7 +33,7 @@ export const createTimerRecord = async (
     }
 
     const data = await response.json();
-    console.log("타이머 기록 생성 성공:", data);
+    console.log("타이머 기록 생성 성공:");
   } catch (err) {
     console.error("타이머 기록 생성 실패:", err);
     throw new Error("타이머 기록 생성에 실패했습니다. 네트워크를 확인하고 다시 시도해 주세요.");

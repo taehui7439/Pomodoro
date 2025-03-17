@@ -23,7 +23,7 @@ export const SignUp = async (email: string, password: string) => {
     // 로컬 스토리지에 토큰 저장
     localStorage.setItem("authToken", data.token);
     localStorage.setItem("user", JSON.stringify({ email }));
-    console.log("회원가입 성공:", data);
+    console.log("회원가입 성공");
 
     return data;
   } catch (err) {
