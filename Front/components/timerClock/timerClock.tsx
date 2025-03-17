@@ -173,23 +173,20 @@ export default function TimerClock() {
         const endTime = formatTime(now);
         const duration = isOvertime ? TOTAL_TIME + overtimeSeconds : TOTAL_TIME - timeLeft;
 
-        // 로컬 상태 먼저 업데이트
-        // 타이머 박스 추가
-        userTimerStore.getState().addTimerBox([
-          {
-            startTime,
-            endTime,
-          },
-        ]);
-
-        // React Query mutation 실행
-        await createRecordMutation.mutateAsync({
+        const data = {
           email: user.email,
           startTime,
           endTime,
           duration: Math.ceil(duration / 60),
           token: token,
-        });
+        };
+
+        // 로컬 상태 먼저 업데이트
+        // 타이머 박스 추가
+        userTimerStore.getState().addTimerBox([data]);
+
+        // React Query mutation 실행
+        await createRecordMutation.mutateAsync(data);
       } catch (error) {
         console.error("타이머 기록 생성 중 오류 발생:", error);
       }
