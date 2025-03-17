@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 interface TimerBox {
   startTime: string;
@@ -11,16 +12,25 @@ interface TimerState {
   setTimerBoxes: (boxes: TimerBox[]) => void;
 }
 
-const userTimerStore = create<TimerState>((set) => ({
-  // 초기 상태로 배열 설정
-  timerBoxes: [],
-  // 기존 timerBoxes에 새로운 box 추가
-  addTimerBox: (boxes) =>
-    set((state) => ({
-      timerBoxes: [...state.timerBoxes, ...boxes],
-    })),
-  // 새로운 배열로 설정
-  setTimerBoxes: (boxes) => set({ timerBoxes: boxes }),
-}));
+const userTimerStore = create(
+  persist(
+    (set) => ({
+      // 초기 상태로 배열 설정
+      timerBoxes: [],
+      // 기존 timerBoxes에 새로운 box 추가
+      addTimerBox: (boxes) =>
+        set((state) => ({
+          timerBoxes: [...state.timerBoxes, ...boxes],
+        })),
+      // 새로운 배열로 설정
+      setTimerBoxes: (boxes) => set({ timerBoxes: boxes }),
+    }),
+    {
+      // 로컬 스토리지에 저장될 키
+      name: "timer-storage",
+      storage: createJSONStorage(() => sessionStorage),
+    },
+  ),
+);
 
 export default userTimerStore;

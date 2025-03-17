@@ -57,13 +57,12 @@ const TimeLine = () => {
         console.log("사용자 정보가 없습니다.");
         return [];
       }
-      console.log(`${new Date().toISOString().split("T")[0]} 기록 조회`);
       return await ReadTimerRecord(user.email, selectDate, token);
     },
     staleTime: 5 * 60 * 1000, // 5분 동안 데이터를 fresh로 유지
     gcTime: 30 * 60 * 1000, // 30분 동안 캐시 유지
     throwOnError: true,
-    enabled: !!user?.email,
+    enabled: !!user?.email && !!selectDate,
   });
 
   // 데이터 로드되면 타이머 박스 상태 업데이트

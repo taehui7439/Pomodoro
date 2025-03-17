@@ -3,6 +3,7 @@ import { create } from "zustand";
 import { SignUp } from "@/api/signUp";
 import { logIn } from "@/api/logIn";
 import { persist, devtools } from "zustand/middleware";
+import useDateStore from "./useDateStore";
 
 interface AuthState {
   user: string | { email: string } | null;
@@ -80,8 +81,15 @@ const useAuthStore = create<AuthState>()(
     },
 
     logout: () => {
+      // 로컬스토리지 정리
       localStorage.removeItem("authToken");
       localStorage.removeItem("user");
+
+      // 날짜 스토어 초기화, 세션스토리지 정리
+      useDateStore.getState().resetStore();
+      sessionStorage.clear();
+
+      // 인증 관련 상태 초기화
       set({
         user: null,
         token: null,
