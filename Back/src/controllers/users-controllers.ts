@@ -91,8 +91,7 @@ const signin = async (req: any, res: any, next: any) => {
       token,
     });
   } catch (err) {
-    console.error(err);
-    return next(new HttpError("로그인 실패: " + err, 500));
+    return next(new HttpError("로그인 실패.", 500));
   }
 };
 

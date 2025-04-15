@@ -1,6 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 
 export default function Category() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
     <button className="box-border flex flex-row justify-center items-center p-2 px-4 gap-2 border border-[1.5px] border-black/11 rounded-[20px] flex-none order-1 grow-0">
       <div className="w-[8px] h-[8px] bg-[#FFA87C] flex-none order-0 grow-0 rounded-[20px]" />

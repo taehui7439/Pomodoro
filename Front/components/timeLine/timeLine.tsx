@@ -100,7 +100,6 @@ const TimeLine = () => {
         console.log("사용자 정보가 없습니다.");
         return [];
       }
-      console.log(`${new Date().toISOString().split("T")[0]} 기록 조회`);
       return await ReadTimerRecord(user.email, selectDate, token);
     },
     initialData: () => {
