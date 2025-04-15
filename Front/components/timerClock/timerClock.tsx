@@ -53,7 +53,7 @@ export default function TimerClock() {
     onSuccess: (data, variables) => {
       // 타이머 기록이 추가되면 타이머 기록 목록 갱신
       if (user && user.email) {
-        queryClient.setQueryData(["timerRecords", user.email, selectDate], data);
+        queryClient.setQueryData(["timerRecords", user.email, selectDate], (old) => [...old, data]);
       } else {
         console.error("사용자 이메일이 없습니다.");
       }
