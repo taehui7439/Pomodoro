@@ -9,6 +9,64 @@ import userTimerStore from "@/store/useTimerStore";
 import useDateStore from "@/store/useDateStore";
 import useAuthStore from "@/store/useAuthStore";
 
+// 세션 스토리지 관련 로직을 별도 훅으로 분리
+const useSessionStorageData = (selectDate: string) => {
+  const getStoredData = () => {
+    const storedTimerData = sessionStorage.getItem("timer-storage");
+    const storedDateData = sessionStorage.getItem("date-storage");
+
+    if (!storedTimerData || !storedDateData) return null;
+
+    try {
+      const parsedTimerData = JSON.parse(storedTimerData);
+      const parsedDateData = JSON.parse(storedDateData);
+      const storedTimerBoxes = parsedTimerData.state.timerBoxes;
+      const storedDate = parsedDateData.state.selectDate;
+
+      if (storedDate === selectDate && storedTimerBoxes[0]?.date === selectDate) {
+        return storedTimerBoxes.map((box) => ({
+          _id: box._id,
+          userId: box.userId,
+          date: box.date,
+          startTime: box.startTime,
+          endTime: box.endTime,
+          duration: box.duration,
+        }));
+      }
+    } catch (error) {
+      console.error("세션 스토리지 데이터 파싱 실패:", error);
+    }
+    return null;
+  };
+
+  return getStoredData();
+};
+
+// 타이머 기록 조회를 위한 커스텀 훅
+const useTimerRecords = () => {
+  const { user, token } = useAuthStore();
+  const { selectDate } = useDateStore();
+  const sessionData = useSessionStorageData(selectDate);
+
+  return useQuery({
+    queryKey: ["timerRecords", user?.email, selectDate],
+    queryFn: async () => {
+      if (!user?.email) {
+        throw new Error("사용자 정보가 없습니다.");
+      }
+      return await ReadTimerRecord(user.email, selectDate, token);
+    },
+    initialData: sessionData,
+    enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
+    retry: 2,
+    onError: (error) => {
+      console.error("타이머 기록 조회 실패:", error);
+    },
+  });
+};
+
 const TimeLine = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [containerH, setContainerH] = useState(0);
@@ -50,85 +108,75 @@ const TimeLine = () => {
     }
   }, []);
 
-  // 세션 스토리지에서 데이터를 로드하는 함수
-  const loadFromSessionStorage = () => {
-    try {
-      const storedDate = sessionStorage.getItem("selected-date");
-      const storedTimerBoxes = sessionStorage.getItem("timer-boxes");
-
-      if (storedDate) {
-        setSelectDate(storedDate);
-      }
-
-      if (storedTimerBoxes) {
-        const parsedTimerBoxes = JSON.parse(storedTimerBoxes);
-        setTimerBoxes(parsedTimerBoxes);
-        return parsedTimerBoxes;
-      }
-
-      return null;
-    } catch (error) {
-      console.error("세션 스토리지 데이터 로드 실패:", error);
-      return null;
-    }
-  };
-
-  // React Query를 사용한 데이터 fetching
-  const { data: timerBoxes = [] } = useQuery({
-    queryKey: ["timerRecords", user?.email, selectDate],
-    queryFn: async () => {
-      if (!user) {
-        console.log("사용자 정보가 없습니다.");
-        return [];
-      }
-      return await ReadTimerRecord(user.email, selectDate, token);
-    },
-    initialData: () => {
-      // 세션 스토리지에서 데이터 확인
-      const storedTimerData = sessionStorage.getItem("timer-storage");
-      const storedDateData = sessionStorage.getItem("date-storage");
-
-      if (!storedTimerData || !storedDateData) return [];
-
-      // JSON 파싱
-      const parsedTimerData = JSON.parse(storedTimerData);
-      const parsedDateData = JSON.parse(storedDateData);
-
-      // state 객체에서 실제 데이터 추출
-      const storedTimerBoxes = parsedTimerData.state.timerBoxes;
-      const storedDate = parsedDateData.state.selectDate;
-      // 현재 선택된 날짜와 저장된 날짜가 같은지 확인
-      if (storedDate === selectDate) {
-        // 필요한 형식으로 데이터 변환
-        return storedTimerBoxes.map((box) => ({
-          _id: box._id,
-          userId: box.userId,
-          date: box.date,
-          startTime: box.startTime,
-          endTime: box.endTime,
-          duration: box.duration,
-        }));
-      }
-
-      return [];
-    },
-    staleTime: 5 * 60 * 1000, // 5분 동안 데이터를 fresh로 유지
-    gcTime: 30 * 60 * 1000, // 30분 동안 캐시 유지
-    throwOnError: true,
-    enabled: !!user?.email && !isInitialized,
-  });
+  // 개선된 쿼리 사용
+  const { data: timerBoxes = [], isError, error } = useTimerRecords();
 
   // 데이터 로드되면 타이머 박스 상태 업데이트
   useEffect(() => {
-    if (timerBoxes && timerBoxes.length > 0) {
-      // Zustand의 상태와 비교하여 변동이 있을 때만 업데이트
+    if (timerBoxes?.length > 0) {
       const currentBoxes = userTimerStore.getState().timerBoxes;
-
       if (JSON.stringify(currentBoxes) !== JSON.stringify(timerBoxes)) {
         setTimerBoxes(timerBoxes);
       }
     }
   }, [timerBoxes, setTimerBoxes]);
+
+  // React Query를 사용한 데이터 fetching
+  // const { data: timerBoxes = [] } = useQuery({
+  //   queryKey: ["timerRecords", user?.email, selectDate],
+  //   queryFn: async () => {
+  //     if (!user) {
+  //       console.log("사용자 정보가 없습니다.");
+  //       return [];
+  //     }
+  //     return await ReadTimerRecord(user.email, selectDate, token);
+  //   },
+  //   initialData: () => {
+  //     // 세션 스토리지에서 데이터 확인
+  //     const storedTimerData = sessionStorage.getItem("timer-storage");
+  //     const storedDateData = sessionStorage.getItem("date-storage");
+
+  //     if (!storedTimerData || !storedDateData) return [];
+
+  //     // JSON 파싱
+  //     const parsedTimerData = JSON.parse(storedTimerData);
+  //     const parsedDateData = JSON.parse(storedDateData);
+
+  //     // state 객체에서 실제 데이터 추출
+  //     const storedTimerBoxes = parsedTimerData.state.timerBoxes;
+  //     const storedDate = parsedDateData.state.selectDate;
+  //     // 현재 선택된 날짜와 저장된 날짜가 같은지 확인
+  //     if (storedDate === selectDate && storedTimerBoxes[0]["date"] === selectDate) {
+  //       // 필요한 형식으로 데이터 변환
+  //       return storedTimerBoxes.map((box) => ({
+  //         _id: box._id,
+  //         userId: box.userId,
+  //         date: box.date,
+  //         startTime: box.startTime,
+  //         endTime: box.endTime,
+  //         duration: box.duration,
+  //       }));
+  //     }
+
+  //     return [];
+  //   },
+  //   staleTime: 5 * 60 * 1000, // 5분 동안 데이터를 fresh로 유지
+  //   gcTime: 30 * 60 * 1000, // 30분 동안 캐시 유지
+  //   throwOnError: true,
+  //   enabled: !!user?.email && !isInitialized,
+  // });
+
+  // 데이터 로드되면 타이머 박스 상태 업데이트
+  // useEffect(() => {
+  //   if (timerBoxes && timerBoxes.length > 0) {
+  //     // Zustand의 상태와 비교하여 변동이 있을 때만 업데이트
+  //     const currentBoxes = userTimerStore.getState().timerBoxes;
+
+  //     if (JSON.stringify(currentBoxes) !== JSON.stringify(timerBoxes)) {
+  //       setTimerBoxes(timerBoxes);
+  //     }
+  //   }
+  // }, [timerBoxes, setTimerBoxes]);
 
   // 컨테이너 높이 측정 및 업데이트
   useEffect(() => {

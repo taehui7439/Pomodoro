@@ -183,13 +183,18 @@ export default function TimerClock() {
           token: token,
         };
 
-        // 로컬 상태 먼저 업데이트
-        // 타이머 박스 추가
+        // 현재 상태 백업 (롤백을 위해)
+        const previousState = userTimerStore.getState().timerBoxes;
+
+        // Optimistic Update
         userTimerStore.getState().addTimerBox([data]);
 
-        // React Query mutation 실행
+        // 서버 동기화
         await createRecordMutation.mutateAsync(data);
       } catch (error) {
+        // 실패 시 롤백
+        userTimerStore.setState({ timerBoxes: previousState });
+
         console.error("타이머 기록 생성 중 오류 발생:", error);
       }
     }

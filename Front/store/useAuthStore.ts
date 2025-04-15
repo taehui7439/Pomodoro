@@ -2,7 +2,7 @@ import { create } from "zustand";
 
 import { SignUp } from "@/api/signUp";
 import { logIn } from "@/api/logIn";
-import { persist, devtools } from "zustand/middleware";
+import { devtools } from "zustand/middleware";
 import useDateStore from "./useDateStore";
 
 interface AuthState {
